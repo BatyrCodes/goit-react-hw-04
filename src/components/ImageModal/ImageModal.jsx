@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Modal from "react-modal";
 
 const customStyles = {
@@ -22,6 +22,12 @@ const customStyles = {
 Modal.setAppElement("#root");
 
 const ImageModal = ({ image, onClose }) => {
+  useEffect(() => {
+    if (!image) {
+      onClose();
+    }
+  }, [image, onClose]);
+
   return (
     <Modal
       isOpen={!!image}

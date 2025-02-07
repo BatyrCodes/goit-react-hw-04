@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SearchBar from "./components/SearchBar/SearchBar";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
-import ImageCard from "./components/ImageCard/ImageCard";
 import Loader from "./components/Loader/Loader";
 import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
@@ -38,12 +39,10 @@ const App = () => {
           },
         }
       );
-      console.log("Response:", response.data);
       setImages((prev) =>
         page === 1 ? response.data.results : [...prev, ...response.data.results]
       );
     } catch (err) {
-      console.error("API Error:", err.response?.data || err.message);
       setError(err.response?.data?.errors?.[0] || "Failed to load images");
     } finally {
       setLoading(false);
@@ -51,24 +50,29 @@ const App = () => {
   };
 
   const handleSearch = (newQuery) => {
+    if (!newQuery.trim()) {
+      toast.error("Search field cannot be empty!");
+      return;
+    }
     setQuery(newQuery);
     setImages([]);
     setPage(1);
   };
 
+  const handleImageClick = (image) => {
+    if (modalImage && modalImage.id === image.id) {
+      setModalImage(null);
+    } else {
+      setModalImage(image);
+    }
+  };
+
   return (
     <div>
+      <ToastContainer />
       <SearchBar onSubmit={handleSearch} />
       {error && <ErrorMessage message={error} />}
-      <ImageGallery>
-        {images.map((image) => (
-          <ImageCard
-            key={image.id}
-            image={image}
-            onClick={() => setModalImage(image)}
-          />
-        ))}
-      </ImageGallery>
+      <ImageGallery images={images} onImageClick={handleImageClick} />
       {loading && <Loader />}
       {images.length > 0 && !loading && (
         <LoadMoreBtn onClick={() => setPage(page + 1)} />
